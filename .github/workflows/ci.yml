@@ -1,0 +1,31 @@
+name: Mobile CI
+
+# Same pattern as the Truck Manager sibling app's pipeline: verify the JS
+# bundle builds cleanly on every push/PR to main. This does NOT build/sign
+# an APK (that's a bigger Android toolchain setup — add it here once the
+# app is far enough along to need real device testing/distribution, same
+# as the Truck Manager repo's release workflow).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  bundle-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Metro bundle (Android, release mode) — catches syntax/require errors
+        run: |
+          npx react-native bundle \
+            --platform android --dev false \
+            --entry-file index.js \
+            --bundle-output /tmp/bundle.js \
+            --assets-dest /tmp/assets
