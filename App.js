@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet, StatusBar } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ToastProvider } from './src/ui/components';
+import { Icon, ToastProvider } from './src/ui/components';
+import { C } from './src/ui/theme';
 import { useSession } from './src/store/session';
 import AuthScreen from './src/screens/AuthScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
@@ -18,8 +19,10 @@ function SplashGate() {
   if (!bootstrapped) {
     return (
       <View style={styles.splash}>
-        <Text style={styles.splashEmoji}>✈️</Text>
-        <ActivityIndicator color="#38BDF8" style={{ marginTop: 16 }} />
+        <View style={styles.splashLogo}>
+          <Icon name="airplane" size={40} color={C.blue} />
+        </View>
+        <ActivityIndicator color={C.blue} style={{ marginTop: 20 }} />
       </View>
     );
   }
@@ -31,7 +34,7 @@ function SplashGate() {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle="light-content" backgroundColor="#0B1220" />
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
       <ToastProvider>
         <SplashGate />
       </ToastProvider>
@@ -40,6 +43,9 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  splash: { flex: 1, backgroundColor: '#0B1220', alignItems: 'center', justifyContent: 'center' },
-  splashEmoji: { fontSize: 48 },
+  splash: { flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' },
+  splashLogo: {
+    width: 84, height: 84, borderRadius: 42, backgroundColor: C.blueSoft,
+    alignItems: 'center', justifyContent: 'center',
+  },
 });

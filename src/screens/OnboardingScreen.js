@@ -1,15 +1,16 @@
-// The 4-step resumable wizard, mirroring the backend's onboarding_step
-// exactly: profile -> country -> headquarters -> plan -> complete. Whatever
-// step the server says the airline is on is where this screen starts —
-// never restarts from scratch (see useSession.bootstrap / the step prop).
+// The 5-step resumable wizard, mirroring the backend's onboarding_step
+// exactly: profile -> country -> headquarters -> plan -> aircraft ->
+// complete. Whatever step the server says the airline is on is where this
+// screen starts — never restarts from scratch (see useSession.bootstrap /
+// the step prop).
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TextInput, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { C, FONT, RADIUS } from '../ui/theme';
-import { Card, Btn, Row, useToast, Pill } from '../ui/components';
+import { Card, Btn, Icon, Row, useToast, Pill } from '../ui/components';
 import { useSession } from '../store/session';
 import * as api from '../services/api';
 
-const LOGO_KEYS = ['airplane-1', 'airplane-2', 'airplane-3', 'globe-1', 'wing-1', 'star-1'];
+const LOGO_KEYS = ['airplane', 'airplane-takeoff', 'airplane-landing', 'earth', 'shield-airplane', 'star-four-points'];
 const COLOR_SWATCHES = ['#1E3A8A', '#0F172A', '#DC2626', '#059669', '#7C3AED', '#EA580C', '#0891B2', '#BE185D'];
 
 function StepDots({ step }) {
@@ -20,7 +21,7 @@ function StepDots({ step }) {
       {steps.map((s, i) => (
         <View key={s} style={{
           width: i === idx ? 22 : 8, height: 8, borderRadius: 4,
-          backgroundColor: i <= idx ? C.blue : '#334155',
+          backgroundColor: i <= idx ? C.blue : C.border,
         }} />
       ))}
     </Row>
@@ -47,33 +48,33 @@ function ProfileStep({ onDone }) {
 
   return (
     <Card style={styles.card}>
-      <Text style={[FONT.h2, { color: '#F8FAFC' }]}>Name your airline</Text>
+      <Text style={FONT.h2}>Name your airline</Text>
       <TextInput value={name} onChangeText={setName} placeholder="e.g. Monsoon Air" placeholderTextColor={C.faint} style={styles.input} />
       <TextInput value={slogan} onChangeText={setSlogan} placeholder="Slogan (optional)" placeholderTextColor={C.faint} style={styles.input} />
 
-      <Text style={[FONT.sub, { color: '#94A3B8', marginTop: 8, marginBottom: 6 }]}>Primary color</Text>
+      <Text style={[FONT.sub, { marginTop: 10, marginBottom: 6 }]}>Primary color</Text>
       <Row style={{ gap: 8, flexWrap: 'wrap' }}>
         {COLOR_SWATCHES.map(c => (
           <Pressable key={c} onPress={() => setPrimary(c)} style={[styles.swatch, { backgroundColor: c }, primary === c && styles.swatchActive]} />
         ))}
       </Row>
-      <Text style={[FONT.sub, { color: '#94A3B8', marginTop: 12, marginBottom: 6 }]}>Secondary color</Text>
+      <Text style={[FONT.sub, { marginTop: 14, marginBottom: 6 }]}>Secondary color</Text>
       <Row style={{ gap: 8, flexWrap: 'wrap' }}>
         {COLOR_SWATCHES.map(c => (
           <Pressable key={c} onPress={() => setSecondary(c)} style={[styles.swatch, { backgroundColor: c }, secondary === c && styles.swatchActive]} />
         ))}
       </Row>
 
-      <Text style={[FONT.sub, { color: '#94A3B8', marginTop: 12, marginBottom: 6 }]}>Logo (custom upload coming later)</Text>
+      <Text style={[FONT.sub, { marginTop: 14, marginBottom: 6 }]}>Logo (custom upload coming later)</Text>
       <Row style={{ gap: 8, flexWrap: 'wrap' }}>
         {LOGO_KEYS.map(k => (
           <Pressable key={k} onPress={() => setLogoKey(k)} style={[styles.logoChip, logoKey === k && styles.logoChipActive]}>
-            <Text style={{ fontSize: 20 }}>✈️</Text>
+            <Icon name={k} size={20} color={logoKey === k ? C.blue : C.sub} />
           </Pressable>
         ))}
       </Row>
 
-      <Btn title={busy ? 'Saving…' : 'Continue'} kind="green" disabled={busy} onPress={submit} style={{ marginTop: 18 }} />
+      <Btn title={busy ? 'Saving…' : 'Continue'} kind="blue" disabled={busy} onPress={submit} style={{ marginTop: 18 }} />
     </Card>
   );
 }
@@ -97,20 +98,20 @@ function CountryStep({ onDone }) {
 
   return (
     <Card style={styles.card}>
-      <Text style={[FONT.h2, { color: '#F8FAFC' }]}>Choose your home country</Text>
-      <Text style={[FONT.sub, { color: '#94A3B8', marginTop: 4, marginBottom: 12 }]}>Only India has full airport coverage right now — every other country will unlock more airports over time.</Text>
+      <Text style={FONT.h2}>Choose your home country</Text>
+      <Text style={[FONT.sub, { marginTop: 4, marginBottom: 12 }]}>Only India has full airport coverage right now — every other country will unlock more airports over time.</Text>
       <ScrollView style={{ maxHeight: 360 }}>
         {countries.map(c => (
-          <Pressable key={c.code} onPress={() => setSelected(c.code)} style={[styles.countryRow, selected === c.code && styles.countryRowActive]}>
+          <Pressable key={c.code} onPress={() => setSelected(c.code)} style={[styles.row, selected === c.code && styles.rowActive]}>
             <View style={{ flex: 1 }}>
-              <Text style={[FONT.body, { color: '#F8FAFC', fontWeight: '700' }]}>{c.name}</Text>
-              <Text style={[FONT.tiny, { color: '#64748B' }]}>{c.airport_count} airport{c.airport_count === 1 ? '' : 's'} · {c.continent_name}</Text>
+              <Text style={[FONT.body, { fontWeight: '700' }]}>{c.name}</Text>
+              <Text style={FONT.tiny}>{c.airport_count} airport{c.airport_count === 1 ? '' : 's'} · {c.continent_name}</Text>
             </View>
             {c.unlocked_by_default ? <Pill text="Home base" color={C.green} bg={C.greenSoft} /> : null}
           </Pressable>
         ))}
       </ScrollView>
-      <Btn title={busy ? 'Saving…' : 'Continue'} kind="green" disabled={busy || !selected} onPress={submit} style={{ marginTop: 14 }} />
+      <Btn title={busy ? 'Saving…' : 'Continue'} kind="blue" disabled={busy || !selected} onPress={submit} style={{ marginTop: 14 }} />
     </Card>
   );
 }
@@ -143,21 +144,21 @@ function HeadquartersStep({ countryId, onDone }) {
 
   return (
     <Card style={styles.card}>
-      <Text style={[FONT.h2, { color: '#F8FAFC' }]}>Pick your headquarters airport</Text>
-      <Text style={[FONT.sub, { color: '#94A3B8', marginTop: 4, marginBottom: 12 }]}>This becomes your airline's permanent home base.</Text>
+      <Text style={FONT.h2}>Pick your headquarters airport</Text>
+      <Text style={[FONT.sub, { marginTop: 4, marginBottom: 12 }]}>This becomes your airline's permanent home base.</Text>
       <ScrollView style={{ maxHeight: 360 }}>
         {airports.map(a => (
-          <Pressable key={a.id} onPress={() => setSelected(a.id)} style={[styles.countryRow, selected === a.id && styles.countryRowActive]}>
+          <Pressable key={a.id} onPress={() => setSelected(a.id)} style={[styles.row, selected === a.id && styles.rowActive]}>
             <View style={{ flex: 1 }}>
-              <Text style={[FONT.body, { color: '#F8FAFC', fontWeight: '700' }]}>{a.city_name} — {a.iata_code}</Text>
-              <Text style={[FONT.tiny, { color: '#64748B' }]} numberOfLines={1}>{a.name}</Text>
+              <Text style={[FONT.body, { fontWeight: '700' }]}>{a.city_name} — {a.iata_code}</Text>
+              <Text style={FONT.tiny} numberOfLines={1}>{a.name}</Text>
             </View>
             {a.is_capital ? <Pill text="Capital" color={C.blue} bg={C.blueSoft} /> : null}
           </Pressable>
         ))}
-        {airports.length === 0 && <Text style={[FONT.sub, { color: '#64748B', padding: 12 }]}>Loading airports…</Text>}
+        {airports.length === 0 && <Text style={[FONT.sub, { padding: 12 }]}>Loading airports…</Text>}
       </ScrollView>
-      <Btn title={busy ? 'Saving…' : 'Continue'} kind="green" disabled={busy || !selected} onPress={submit} style={{ marginTop: 14 }} />
+      <Btn title={busy ? 'Saving…' : 'Continue'} kind="blue" disabled={busy || !selected} onPress={submit} style={{ marginTop: 14 }} />
     </Card>
   );
 }
@@ -183,23 +184,23 @@ function PlanStep({ onDone }) {
 
   return (
     <Card style={styles.card}>
-      <Text style={[FONT.h2, { color: '#F8FAFC' }]}>Choose your starter plan</Text>
-      <Text style={[FONT.sub, { color: '#94A3B8', marginTop: 4, marginBottom: 12 }]}>Every airline starts with a ₹50 Cr grant — your plan's cost comes out of that, the rest is your opening cash.</Text>
+      <Text style={FONT.h2}>Choose your starter plan</Text>
+      <Text style={[FONT.sub, { marginTop: 4, marginBottom: 12 }]}>Every airline starts with a ₹50 Cr grant — your plan's cost comes out of that, the rest is your opening cash.</Text>
       {plans.map(p => (
         <Pressable key={p.code} onPress={() => setSelected(p.code)} style={[styles.planCard, selected === p.code && styles.planCardActive]}>
           <Row style={{ justifyContent: 'space-between' }}>
-            <Text style={[FONT.body, { color: '#F8FAFC', fontWeight: '800' }]}>{p.name}</Text>
+            <Text style={[FONT.body, { fontWeight: '800' }]}>{p.name}</Text>
             <Text style={[FONT.body, { color: C.amber, fontWeight: '800' }]}>−{fmt(p.cost)}</Text>
           </Row>
-          <Text style={[FONT.tiny, { color: '#94A3B8', marginTop: 4 }]}>{p.description}</Text>
+          <Text style={[FONT.tiny, { marginTop: 4 }]}>{p.description}</Text>
           <Row style={{ marginTop: 8, gap: 10 }}>
-            <Text style={[FONT.tiny, { color: '#64748B' }]}>Reputation {p.starting_reputation}</Text>
-            <Text style={[FONT.tiny, { color: '#64748B' }]}>Premium {p.starting_premium_currency}</Text>
-            <Text style={[FONT.tiny, { color: '#4ADE80', fontWeight: '700' }]}>Cash left: {fmt(500000000 - p.cost)}</Text>
+            <Text style={FONT.tiny}>Reputation {p.starting_reputation}</Text>
+            <Text style={FONT.tiny}>Premium {p.starting_premium_currency}</Text>
+            <Text style={[FONT.tiny, { color: C.green, fontWeight: '700' }]}>Cash left: {fmt(500000000 - p.cost)}</Text>
           </Row>
         </Pressable>
       ))}
-      <Btn title={busy ? 'Launching…' : 'Launch Airline'} kind="green" disabled={busy || !selected} onPress={submit} style={{ marginTop: 14 }} />
+      <Btn title={busy ? 'Launching…' : 'Launch Airline'} kind="blue" disabled={busy || !selected} onPress={submit} style={{ marginTop: 14 }} />
     </Card>
   );
 }
@@ -223,27 +224,26 @@ function AircraftStep({ onDone }) {
 
   return (
     <Card style={styles.card}>
-      <Text style={[FONT.h2, { color: '#F8FAFC' }]}>Pick your first aircraft</Text>
-      <Text style={[FONT.sub, { color: '#94A3B8', marginTop: 4, marginBottom: 12 }]}>Free — already covered by your plan. It'll start in the hangar and be ready to fly shortly.</Text>
+      <Text style={FONT.h2}>Pick your first aircraft</Text>
+      <Text style={[FONT.sub, { marginTop: 4, marginBottom: 12 }]}>Free — already covered by your plan. It'll start in the hangar and be ready to fly shortly.</Text>
       {models.map(m => (
         <Pressable key={m.id} onPress={() => setSelected(m.id)} style={[styles.planCard, selected === m.id && styles.planCardActive]}>
-          <Text style={[FONT.body, { color: '#F8FAFC', fontWeight: '800' }]}>{m.manufacturer} {m.model}</Text>
+          <Text style={[FONT.body, { fontWeight: '800' }]}>{m.manufacturer} {m.model}</Text>
           <Row style={{ marginTop: 6, gap: 10, flexWrap: 'wrap' }}>
-            <Text style={[FONT.tiny, { color: '#64748B' }]}>{m.passenger_capacity} seats</Text>
-            <Text style={[FONT.tiny, { color: '#64748B' }]}>Range {m.max_range_km.toLocaleString()} km</Text>
-            <Text style={[FONT.tiny, { color: '#64748B' }]}>{m.aircraft_type}</Text>
+            <Text style={FONT.tiny}>{m.passenger_capacity} seats</Text>
+            <Text style={FONT.tiny}>Range {m.max_range_km.toLocaleString()} km</Text>
+            <Text style={FONT.tiny}>{m.aircraft_type}</Text>
           </Row>
         </Pressable>
       ))}
-      {models.length === 0 && <Text style={[FONT.sub, { color: '#64748B' }]}>Loading choices…</Text>}
-      <Btn title={busy ? 'Finishing…' : 'Complete Setup'} kind="green" disabled={busy || !selected} onPress={submit} style={{ marginTop: 14 }} />
+      {models.length === 0 && <Text style={FONT.sub}>Loading choices…</Text>}
+      <Btn title={busy ? 'Finishing…' : 'Complete Setup'} kind="blue" disabled={busy || !selected} onPress={submit} style={{ marginTop: 14 }} />
     </Card>
   );
 }
 
 export default function OnboardingScreen() {
   const airline = useSession(s => s.airline);
-  const refreshAirlineStatus = useSession(s => s.refreshAirlineStatus);
   const loadFullAirline = useSession(s => s.loadFullAirline);
   const step = airline?.onboarding_step || 'profile';
 
@@ -258,7 +258,7 @@ export default function OnboardingScreen() {
   return (
     <View style={styles.flex}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 40 }}>
-        <Text style={[FONT.h1, { color: '#F8FAFC', textAlign: 'center', marginBottom: 4 }]}>Set Up Your Airline</Text>
+        <Text style={[FONT.h1, { textAlign: 'center', marginBottom: 4 }]}>Set Up Your Airline</Text>
         <StepDots step={step} />
         {step === 'profile' && <ProfileStep onDone={onDone} />}
         {step === 'country' && <CountryStep onDone={onDone} />}
@@ -271,18 +271,27 @@ export default function OnboardingScreen() {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: '#0B1220' },
-  card: { padding: 18, backgroundColor: '#111827', borderColor: '#1E293B' },
+  flex: { flex: 1, backgroundColor: C.bg },
+  card: { padding: 18 },
   input: {
-    backgroundColor: '#0B1220', borderRadius: RADIUS.md, borderWidth: 1, borderColor: '#1E293B',
-    paddingHorizontal: 14, paddingVertical: 12, marginTop: 10, color: '#F8FAFC', fontSize: 15,
+    backgroundColor: C.bgSoft, borderRadius: RADIUS.md, borderWidth: 1, borderColor: C.border,
+    paddingHorizontal: 14, paddingVertical: 12, marginTop: 10, color: C.text, fontSize: 15,
   },
   swatch: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, borderColor: 'transparent' },
-  swatchActive: { borderColor: '#F8FAFC' },
-  logoChip: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#1E293B', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
-  logoChipActive: { borderColor: C.blue },
-  countryRow: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: RADIUS.md, backgroundColor: '#0B1220', marginBottom: 6, borderWidth: 1, borderColor: '#1E293B' },
-  countryRowActive: { borderColor: C.blue, backgroundColor: '#1E293B' },
-  planCard: { padding: 14, borderRadius: RADIUS.md, backgroundColor: '#0B1220', marginBottom: 10, borderWidth: 1, borderColor: '#1E293B' },
-  planCardActive: { borderColor: C.green },
+  swatchActive: { borderColor: C.text },
+  logoChip: {
+    width: 44, height: 44, borderRadius: 12, backgroundColor: C.bgSoft, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: 'transparent',
+  },
+  logoChipActive: { borderColor: C.blue, backgroundColor: C.blueSoft },
+  row: {
+    flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: RADIUS.md,
+    backgroundColor: C.bgSoft, marginBottom: 6, borderWidth: 1, borderColor: C.border,
+  },
+  rowActive: { borderColor: C.blue, backgroundColor: C.blueSoft },
+  planCard: {
+    padding: 14, borderRadius: RADIUS.md, backgroundColor: C.bgSoft, marginBottom: 10,
+    borderWidth: 1, borderColor: C.border,
+  },
+  planCardActive: { borderColor: C.green, backgroundColor: C.greenSoft },
 });

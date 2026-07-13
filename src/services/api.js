@@ -9,9 +9,7 @@
 // ============================================================================
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// TODO: replace with the deployed Vercel URL once live, e.g.
-// 'https://airlines-empire-backend.vercel.app/api'
-export const BASE_URL = 'http://localhost:4000/api';
+export const BASE_URL = 'https://airlines-empire-backend.vercel.app/api';
 
 const KEYS = { access: 'ae_access_token', refresh: 'ae_refresh_token' };
 

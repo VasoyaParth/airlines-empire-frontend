@@ -15,10 +15,10 @@ function buildHtml({ lat, lng, name, iata }) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
-  html,body,#map{margin:0;height:100%;width:100%;background:#0B1220}
-  .hq-pin{width:36px;height:36px;border-radius:18px;background:#1E293B;border:3px solid #38BDF8;
-    display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,.4)}
-  .hq-pin span{color:#38BDF8;font-size:16px;font-weight:800}
+  html,body,#map{margin:0;height:100%;width:100%;background:#F6F7F9}
+  .hq-pin{width:36px;height:36px;border-radius:18px;background:#FFFFFF;border:3px solid #2563EB;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(11,15,20,.25)}
+  .hq-pin span{color:#2563EB;font-size:16px;font-weight:800}
   .leaflet-popup-content{font-size:13px;font-weight:600}
 </style>
 </head><body>
@@ -43,7 +43,7 @@ function buildHtml({ lat, lng, name, iata }) {
     onAdd: function () {
       var btn = L.DomUtil.create('button');
       btn.innerHTML = '&#9992;';
-      btn.style.cssText = 'width:40px;height:40px;border-radius:20px;background:#1E293B;color:#38BDF8;font-size:18px;border:2px solid #38BDF8;box-shadow:0 3px 8px rgba(0,0,0,.4)';
+      btn.style.cssText = 'width:40px;height:40px;border-radius:20px;background:#FFFFFF;color:#2563EB;font-size:18px;border:2px solid #2563EB;box-shadow:0 3px 8px rgba(11,15,20,.25)';
       btn.onclick = function () { map.flyTo([${lat}, ${lng}], 9, { duration: 1.2 }); hqMarker.openPopup(); };
       return btn;
     }
@@ -69,7 +69,7 @@ export default function HQMap({ lat, lng, name, iata, style }) {
 }
 
 const styles = StyleSheet.create({
-  container: { overflow: 'hidden', backgroundColor: '#0B1220' },
+  container: { overflow: 'hidden', backgroundColor: '#F6F7F9' },
   webview: { flex: 1, backgroundColor: 'transparent' },
-  fallback: { backgroundColor: '#0B1220' },
+  fallback: { backgroundColor: '#F6F7F9' },
 });

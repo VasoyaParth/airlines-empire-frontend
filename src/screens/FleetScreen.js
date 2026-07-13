@@ -7,9 +7,8 @@
 // corners on this screen.
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TextInput, Pressable, FlatList, StyleSheet } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { C, FONT, RADIUS } from '../ui/theme';
-import { Card, Btn, Row, Pill, Progress, useToast, Sheet } from '../ui/components';
+import { Card, Btn, Row, Pill, Progress, Icon, useToast, Sheet } from '../ui/components';
 import { inr } from '../engine/economy';
 import * as api from '../services/api';
 import { useSession } from '../store/session';
@@ -29,8 +28,8 @@ function StatusPill({ status }) {
     scheduled: { label: 'Scheduled', color: C.green, bg: C.greenSoft, icon: 'calendar-clock' },
     in_flight: { label: 'In Flight', color: C.green, bg: C.greenSoft, icon: 'airplane' },
     maintenance: { label: 'Maintenance', color: C.red, bg: C.redSoft, icon: 'wrench' },
-    retired: { label: 'Retired', color: '#64748B', bg: '#1E293B', icon: 'archive' },
-  }[status] || { label: status, color: C.faint, bg: '#1E293B', icon: 'help' };
+    retired: { label: 'Retired', color: C.faint, bg: C.bgSoft, icon: 'archive' },
+  }[status] || { label: status, color: C.faint, bg: C.bgSoft, icon: 'help' };
   return <Pill text={meta.label} color={meta.color} bg={meta.bg} icon={meta.icon} />;
 }
 
@@ -41,12 +40,12 @@ function AircraftDetailSheet({ aircraft, visible, onClose }) {
     : 100;
   return (
     <Sheet visible={visible} onClose={onClose} title={aircraft.registration} height="70%">
-      <Card style={{ backgroundColor: '#111827', borderColor: '#1E293B', marginBottom: 12 }}>
+      <Card style={{ marginBottom: 12 }}>
         <Row style={{ justifyContent: 'space-between' }}>
-          <Text style={[FONT.h3, { color: '#F8FAFC' }]}>{aircraft.manufacturer} {aircraft.model}</Text>
+          <Text style={FONT.h3}>{aircraft.manufacturer} {aircraft.model}</Text>
           <StatusPill status={aircraft.status} />
         </Row>
-        <Text style={[FONT.tiny, { color: '#64748B', marginTop: 4 }]}>{aircraft.nickname || 'No nickname set'} · {aircraft.aircraft_type}</Text>
+        <Text style={[FONT.tiny, { marginTop: 4 }]}>{aircraft.nickname || 'No nickname set'} · {aircraft.aircraft_type}</Text>
       </Card>
 
       {aircraft.status === 'building' ? (
@@ -77,7 +76,7 @@ function AircraftDetailSheet({ aircraft, visible, onClose }) {
         <Row style={{ justifyContent: 'space-between', marginBottom: 6 }}><Text style={FONT.tiny}>Max range</Text><Text style={FONT.tiny}>{aircraft.max_range_km} km</Text></Row>
         <Row style={{ justifyContent: 'space-between' }}><Text style={FONT.tiny}>Current value</Text><Text style={FONT.tiny}>{inr(Number(aircraft.current_value))}</Text></Row>
       </Card>
-      <Text style={[FONT.tiny, { color: '#475569', textAlign: 'center', marginTop: 14 }]}>
+      <Text style={[FONT.tiny, { textAlign: 'center', marginTop: 14 }]}>
         Full flight timeline & the visual seat/cabin editor arrive in a later phase.
       </Text>
     </Sheet>
@@ -91,12 +90,12 @@ function MyFleetTab() {
   const load = () => api.getMyFleet().then(setFleet).catch(() => setFleet([]));
   useEffect(() => { load(); }, []);
 
-  if (fleet === null) return <Text style={[FONT.sub, { color: '#64748B', padding: 20 }]}>Loading fleet…</Text>;
+  if (fleet === null) return <Text style={[FONT.sub, { padding: 20 }]}>Loading fleet…</Text>;
   if (fleet.length === 0) {
     return (
       <View style={styles.empty}>
-        <Icon name="airplane-off" size={36} color="#475569" />
-        <Text style={[FONT.h3, { color: '#94A3B8', marginTop: 10 }]}>No aircraft yet</Text>
+        <Icon name="airplane-off" size={36} color={C.faint} />
+        <Text style={[FONT.h3, { marginTop: 10 }]}>No aircraft yet</Text>
       </View>
     );
   }
@@ -132,7 +131,6 @@ function BuyAircraftTab() {
   const [filter, setFilter] = useState('all');
   const [busy, setBusy] = useState(null);
   const toast = useToast();
-  const refreshAirlineStatus = useSession(s => s.refreshAirlineStatus);
   const loadFullAirline = useSession(s => s.loadFullAirline);
 
   useEffect(() => { api.getAircraftModels().then(setModels).catch(() => {}); }, []);
@@ -159,11 +157,14 @@ function BuyAircraftTab() {
   return (
     <View style={{ flex: 1 }}>
       <View style={{ padding: 14, paddingBottom: 0 }}>
-        <TextInput value={query} onChangeText={setQuery} placeholder="Search manufacturer or model…" placeholderTextColor={C.faint} style={styles.search} />
+        <View style={styles.searchWrap}>
+          <Icon name="magnify" size={18} color={C.faint} style={{ marginRight: 8 }} />
+          <TextInput value={query} onChangeText={setQuery} placeholder="Search manufacturer or model…" placeholderTextColor={C.faint} style={styles.searchInput} />
+        </View>
         <Row style={{ gap: 6, marginTop: 10, marginBottom: 10, flexWrap: 'wrap' }}>
           {FILTERS.map(f => (
             <Pressable key={f.key} onPress={() => setFilter(f.key)} style={[styles.chip, filter === f.key && styles.chipActive]}>
-              <Text style={[FONT.tiny, { fontWeight: '700', color: filter === f.key ? '#fff' : '#94A3B8' }]}>{f.label}</Text>
+              <Text style={[FONT.tiny, { fontWeight: '700', color: filter === f.key ? '#fff' : C.sub }]}>{f.label}</Text>
             </Pressable>
           ))}
         </Row>
@@ -203,12 +204,13 @@ export default function FleetScreen() {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: '#0B1220' },
+  flex: { flex: 1, backgroundColor: C.bg },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  search: {
-    backgroundColor: '#111827', borderRadius: RADIUS.md, borderWidth: 1, borderColor: '#1E293B',
-    paddingHorizontal: 14, paddingVertical: 10, color: '#F8FAFC',
+  searchWrap: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: C.bgSoft, borderRadius: RADIUS.md,
+    borderWidth: 1, borderColor: C.border, paddingHorizontal: 12,
   },
-  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 18, backgroundColor: '#111827', borderWidth: 1, borderColor: '#1E293B' },
+  searchInput: { flex: 1, paddingVertical: 10, color: C.text },
+  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 18, backgroundColor: C.bgSoft, borderWidth: 1, borderColor: C.border },
   chipActive: { backgroundColor: C.blue, borderColor: C.blue },
 });
